@@ -81,22 +81,21 @@
   .datefield{
     display:flex;align-items:center;justify-content:space-between;gap:12px;
     background:var(--surface);border:1px solid var(--line);
-    border-radius:var(--radius);box-shadow:var(--shadow);padding:15px 16px;
+    border-radius:var(--radius);box-shadow:var(--shadow);padding:13px 16px;
+    cursor:pointer;
   }
-  .datefield .dlabel{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;color:var(--ink)}
+  .datefield .dlabel{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;color:var(--ink);flex:0 0 auto}
   .datefield .dicon{
     width:30px;height:30px;border-radius:8px;background:var(--paper);display:grid;place-items:center;
     font-size:14px;flex:0 0 auto;
   }
   .datefield input[type="date"]{
     border:0;background:transparent;font-family:'JetBrains Mono',monospace;font-weight:700;
-    font-size:15px;color:var(--brand);text-align:right;width:auto;min-width:0;padding:0;
-    -webkit-appearance:none;appearance:none;
+    font-size:16px;color:var(--brand);text-align:right;
+    min-height:34px;padding:0;margin:0;flex:1;min-width:0;
   }
   .datefield input[type="date"]:focus{outline:none}
-  .datefield input[type="date"]::-webkit-calendar-picker-indicator{
-    opacity:.45;margin-left:6px;cursor:pointer;
-  }
+  .datefield input[type="date"]::-webkit-calendar-picker-indicator{opacity:.45;cursor:pointer}
   .datefield.empty input[type="date"]{color:#9aa4b1;font-weight:500;font-family:Inter,sans-serif}
   .datefield.filled{border-color:var(--brand)}
   .datehint{font-size:12.5px;color:var(--muted);margin:8px 4px 0}
@@ -252,9 +251,9 @@
   <div class="card" id="prodList"><!-- js --></div>
 
   <div class="sec-label">Teslim tarihi</div>
-  <div class="datefield empty" id="dateWrap">
+  <div class="datefield empty" id="dateWrap" onclick="takvimAc()">
     <span class="dlabel"><span class="dicon">📅</span>Teslim</span>
-    <input type="date" id="teslimTarihi" onchange="tarihDegisti()" />
+    <input type="date" id="teslimTarihi" onchange="tarihDegisti()" onclick="event.stopPropagation()" />
   </div>
   <div class="datehint" id="dateHint">Sipariş göndermek için tarih seçin.</div>
 
@@ -403,6 +402,14 @@ function updateTotals(){
   document.getElementById('totLines').textContent = lines;
   const tarih = document.getElementById('teslimTarihi').value;
   document.getElementById('sendBtn').disabled = (lines===0 || !tarih);
+}
+function takvimAc(){
+  const dt = document.getElementById('teslimTarihi');
+  if(!dt) return;
+  dt.focus();
+  if(typeof dt.showPicker === 'function'){
+    try{ dt.showPicker(); }catch(e){}
+  }
 }
 function tarihDegisti(){
   const v = document.getElementById('teslimTarihi').value;
