@@ -79,17 +79,28 @@
 
   /* Teslim tarihi */
   .datefield{
-    display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);
-    border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);padding:15px 16px;
+  }
+  .datefield .dlabel{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;color:var(--ink)}
+  .datefield .dicon{
+    width:30px;height:30px;border-radius:8px;background:var(--paper);display:grid;place-items:center;
+    font-size:14px;flex:0 0 auto;
   }
   .datefield input[type="date"]{
-    flex:1;border:0;background:transparent;font-family:Inter,sans-serif;font-size:16px;color:var(--ink);
-    min-height:26px;
+    border:0;background:transparent;font-family:'JetBrains Mono',monospace;font-weight:700;
+    font-size:15px;color:var(--brand);text-align:right;width:auto;min-width:0;padding:0;
+    -webkit-appearance:none;appearance:none;
   }
   .datefield input[type="date"]:focus{outline:none}
-  .datefield.empty{border-color:#f0cccc}
-  .datefield.filled{border-color:var(--onay)}
+  .datefield input[type="date"]::-webkit-calendar-picker-indicator{
+    opacity:.45;margin-left:6px;cursor:pointer;
+  }
+  .datefield.empty input[type="date"]{color:#9aa4b1;font-weight:500;font-family:Inter,sans-serif}
+  .datefield.filled{border-color:var(--brand)}
   .datehint{font-size:12.5px;color:var(--muted);margin:8px 4px 0}
+  .datehint.warn{color:#a86a00}
 
   /* Sticky submit */
   .bar{
@@ -119,6 +130,41 @@
   .receipt .row:last-child{border-bottom:0}
   .receipt .row .q{font-family:'JetBrains Mono',monospace;font-weight:700}
 
+  /* ===== Siparişlerim listesi ===== */
+  .myrow{
+    display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;
+    transition:background .12s;
+  }
+  .myrow:last-child{border-bottom:0}
+  .myrow:active{background:var(--paper)}
+  .myrow-l{flex:1;min-width:0}
+  .myrow-id{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px}
+  .myrow-sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+
+  /* ===== Takip zaman çizelgesi ===== */
+  #trackCard{padding:20px 18px 6px}
+  .tl{display:flex;gap:14px;position:relative;padding-bottom:22px}
+  .tl:last-child{padding-bottom:6px}
+  .tl::before{
+    content:'';position:absolute;left:13px;top:26px;bottom:0;width:2px;background:var(--line);
+  }
+  .tl:last-child::before{display:none}
+  .tl.past::before{background:var(--onay)}
+  .tl-dot{
+    width:28px;height:28px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+    font-size:13px;font-weight:700;border:2px solid var(--line);background:var(--surface);color:transparent;z-index:1;
+  }
+  .tl.past .tl-dot{background:var(--onay);border-color:var(--onay);color:#fff}
+  .tl.now .tl-dot{background:var(--brand);border-color:var(--brand);color:#fff;font-size:9px}
+  .tl-body{padding-top:3px}
+  .tl-ad{font-weight:600;font-size:15px;color:var(--muted)}
+  .tl.past .tl-ad{color:var(--ink)}
+  .tl.now .tl-ad{color:var(--brand);font-weight:700}
+  .tl-ac{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.35}
+  .redbox{background:#fbe0e0;border-radius:10px;padding:14px 16px;margin-bottom:14px}
+  .redbox b{display:block;color:#a82a2a;font-size:15px;margin-bottom:3px}
+  .redbox span{font-size:13.5px;color:var(--muted)}
+
   /* ===== Admin ===== */
   .gate{max-width:360px;margin:12vh auto 0;padding:0 20px;text-align:center}
   .gate .mark{margin:0 auto 18px;width:52px;height:52px;font-size:22px;border-radius:13px}
@@ -140,14 +186,27 @@
   @keyframes slidein{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){.ticket{animation:none}}
   .ticket .stripe{position:absolute;left:0;top:0;bottom:0;width:6px}
-  .ticket.yeni .stripe{background:var(--yeni)} .ticket.onaylandi .stripe{background:var(--onay)}
-  .ticket.beklemede .stripe{background:var(--beklet)} .ticket.reddedildi .stripe{background:var(--ret)}
+  .ticket.alindi .stripe{background:var(--yeni)}
+  .ticket.onaylandi .stripe{background:var(--brand)}
+  .ticket.uretimde .stripe{background:#7B4FD1}
+  .ticket.sevkiyatta .stripe{background:#0E9BB8}
+  .ticket.teslim .stripe{background:var(--onay)}
+  .ticket.reddedildi .stripe{background:var(--ret)}
+  /* aşama çubuğu */
+  .steps{display:flex;gap:4px;margin:0 0 12px}
+  .step{flex:1;height:4px;border-radius:2px;background:var(--line)}
+  .step.past{background:var(--onay)}
+  .step.now{background:var(--brand)}
   .thead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
   .oid{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--ink)}
   .otime{font-size:12px;color:var(--muted)}
   .badge{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:6px}
-  .badge.yeni{background:#FDEFD6;color:#9a6200} .badge.onaylandi{background:#DEF3E7;color:#137a41}
-  .badge.beklemede{background:#eceef1;color:#4a5563} .badge.reddedildi{background:#fbe0e0;color:#a82a2a}
+  .badge.alindi{background:#FDEFD6;color:#9a6200}
+  .badge.onaylandi{background:#E3EBFD;color:#1740a8}
+  .badge.uretimde{background:#EDE6FB;color:#5a34a8}
+  .badge.sevkiyatta{background:#DDF1F6;color:#0a6d82}
+  .badge.teslim{background:#DEF3E7;color:#137a41}
+  .badge.reddedildi{background:#fbe0e0;color:#a82a2a}
   .lines{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 0 10px}
   .line{display:flex;justify-content:space-between;padding:9px 2px;font-size:14.5px;border-bottom:1px dashed var(--line)}
   .line:last-child{border-bottom:0}
@@ -184,19 +243,23 @@
     </div>
   </div>
 
+  <div id="myOrdersWrap" class="hide">
+    <div class="sec-label">Siparişlerim</div>
+    <div class="card" id="myOrders"></div>
+  </div>
+
   <div class="sec-label">Ürünler</div>
   <div class="card" id="prodList"><!-- js --></div>
 
   <div class="sec-label">Teslim tarihi</div>
   <div class="datefield empty" id="dateWrap">
+    <span class="dlabel"><span class="dicon">📅</span>Teslim</span>
     <input type="date" id="teslimTarihi" onchange="tarihDegisti()" />
   </div>
-  <div class="datehint">Siparişi göndermek için teslim tarihi seçilmelidir.</div>
+  <div class="datehint" id="dateHint">Sipariş göndermek için tarih seçin.</div>
 
   <div class="sec-label">Sipariş notu</div>
   <textarea id="orderNote" placeholder="Baskı, palet düzeni, özel istek… (opsiyonel)"></textarea>
-
-  <div class="footlink"><a href="?admin=1">Yönetim girişi</a></div>
 </div>
 
 <div id="orderBar" class="bar">
@@ -209,15 +272,25 @@
   </div>
 </div>
 
-<!-- ============ MÜŞTERİ: ONAY EKRANI ============ -->
+<!-- ============ MÜŞTERİ: TAKİP EKRANI ============ -->
 <div id="doneView" class="wrap hide">
-  <div class="done">
-    <div class="tick">✓</div>
-    <h2>Siparişiniz iletildi</h2>
-    <p>Günkar Ambalaj siparişinizi aldı ve inceliyor.</p>
-    <div class="card receipt" id="receipt"></div>
-    <button class="btn ghost" onclick="yeniSiparis()">Yeni sipariş oluştur</button>
+  <div class="top">
+    <div class="mark"><img src="logo.png" alt="Gülgün" /></div>
+    <div>
+      <h1>Sipariş takibi</h1>
+      <div class="sub">Sipariş <span id="trackId">—</span></div>
+    </div>
   </div>
+
+  <div class="card" id="trackCard">
+    <div id="timeline"></div>
+  </div>
+
+  <div class="sec-label">Sipariş özeti</div>
+  <div class="card receipt" id="receipt"></div>
+
+  <button class="btn ghost" style="width:100%;margin-top:22px" onclick="yeniSiparis()">Yeni sipariş oluştur</button>
+  <div class="footlink"><a href="#" onclick="siparisEkraninaDon();return false;">← Siparişlerime dön</a></div>
 </div>
 
 <!-- ============ YÖNETİM: ŞİFRE ============ -->
@@ -238,7 +311,7 @@
         <div class="cnt"><span id="newCount">0</span> yeni · canlı</div>
       </div>
     </div>
-    <button class="btn ghost sm" onclick="location.href='?'">Çıkış</button>
+    <button class="btn ghost sm" onclick="cikisYap()">Çıkış</button>
   </div>
 
   <div id="pushNote" class="pushnote hide">
@@ -247,10 +320,12 @@
   </div>
 
   <div class="filters" id="filters">
-    <button class="chip on" data-f="all" onclick="setFilter(this)">Tümü</button>
-    <button class="chip" data-f="yeni" onclick="setFilter(this)">Yeni</button>
-    <button class="chip" data-f="onaylandi" onclick="setFilter(this)">Onaylı</button>
-    <button class="chip" data-f="beklemede" onclick="setFilter(this)">Bekleyen</button>
+    <button class="chip on" data-f="acik" onclick="setFilter(this)">Açık</button>
+    <button class="chip" data-f="alindi" onclick="setFilter(this)">Yeni</button>
+    <button class="chip" data-f="uretimde" onclick="setFilter(this)">Üretimde</button>
+    <button class="chip" data-f="sevkiyatta" onclick="setFilter(this)">Sevkiyatta</button>
+    <button class="chip" data-f="teslim" onclick="setFilter(this)">Teslim</button>
+    <button class="chip" data-f="all" onclick="setFilter(this)">Tümü</button>
   </div>
 
   <div id="orders"></div>
@@ -279,6 +354,16 @@ const ADMIN_SIFRE = "gunkar";
 /* Ürünler — sonra buradan değiştir/çoğalt */
 const PRODUCTS = ["10kg Halloumi Cheese","5kg Halloumi Cheese","Milba","Kaşar","Ürün 5","Ürün 6","Ürün 7"];
 const BIRIM = "koli";
+
+/* Sipariş aşamaları (sıralı) */
+const ASAMALAR = [
+  { id:'alindi',     ad:'Alındı',        musteri:'Siparişiniz alındı',       aciklama:'Günkar Ambalaj siparişinizi aldı.' },
+  { id:'onaylandi',  ad:'Onaylandı',     musteri:'Siparişiniz onaylandı',    aciklama:'Sipariş onaylandı, üretim planına alınıyor.' },
+  { id:'uretimde',   ad:'Üretimde',      musteri:'Üretimde',                 aciklama:'Koliler üretim hattında.' },
+  { id:'sevkiyatta', ad:'Sevkiyatta',    musteri:'Sevkiyatta',               aciklama:'Sipariş yola çıktı.' },
+  { id:'teslim',     ad:'Teslim edildi', musteri:'Teslim edildi',            aciklama:'Sipariş teslim edildi.' }
+];
+const asamaIndex = id => ASAMALAR.findIndex(a=>a.id===id);
 /* ============================================================ */
 
 firebase.initializeApp(firebaseConfig);
@@ -322,8 +407,13 @@ function updateTotals(){
 function tarihDegisti(){
   const v = document.getElementById('teslimTarihi').value;
   const w = document.getElementById('dateWrap');
+  const h = document.getElementById('dateHint');
   w.classList.toggle('filled', !!v);
   w.classList.toggle('empty', !v);
+  if(h){
+    h.textContent = v ? tarihYaz(v) + ' tarihinde teslim edilecek.' : 'Sipariş göndermek için tarih seçin.';
+    h.classList.toggle('warn', !v);
+  }
   updateTotals();
 }
 function tarihYaz(iso){
@@ -340,18 +430,117 @@ async function siparisGonder(){
   const btn = document.getElementById('sendBtn');
   btn.disabled = true; btn.textContent = "Gönderiliyor…";
   try{
-    await db.collection('gulgun_siparisleri').add({
+    const ref = await db.collection('gulgun_siparisleri').add({
       items,
       teslimTarihi: tarih,
       not: document.getElementById('orderNote').value.trim(),
-      status: 'yeni',
+      status: 'alindi',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     showReceipt(items, document.getElementById('orderNote').value.trim(), tarih);
+    gecmiseEkle(ref.id);
+    takipBaslat(ref.id);
   }catch(e){
     btn.disabled=false; btn.textContent="Siparişi gönder";
     toast("Gönderilemedi — bağlantıyı kontrol et");
   }
+}
+
+/* ---------- Müşteri: cihazdaki sipariş geçmişi ---------- */
+const GECMIS_KEY = 'gk_siparislerim';
+function gecmisOku(){
+  try{ return JSON.parse(localStorage.getItem(GECMIS_KEY) || '[]'); }catch(e){ return []; }
+}
+function gecmiseEkle(id){
+  try{
+    const l = gecmisOku().filter(x=>x!==id);
+    l.unshift(id);
+    localStorage.setItem(GECMIS_KEY, JSON.stringify(l.slice(0,20)));
+  }catch(e){}
+}
+let gecmisUnsub = [];
+function gecmisiCiz(){
+  const ids = gecmisOku();
+  const wrap = document.getElementById('myOrdersWrap');
+  const el = document.getElementById('myOrders');
+  if(!ids.length){ wrap.classList.add('hide'); return; }
+  wrap.classList.remove('hide');
+  el.innerHTML = ids.map(id=>`
+    <div class="myrow" id="my-${id}" onclick="takibeGit('${id}')">
+      <div class="myrow-l">
+        <div class="myrow-id">#${id.slice(-5).toUpperCase()}</div>
+        <div class="myrow-sub" id="mysub-${id}">yükleniyor…</div>
+      </div>
+      <span class="badge alindi" id="mybadge-${id}">—</span>
+    </div>`).join('');
+
+  gecmisUnsub.forEach(u=>u()); gecmisUnsub = [];
+  ids.forEach(id=>{
+    const u = db.collection('gulgun_siparisleri').doc(id).onSnapshot(doc=>{
+      const badge = document.getElementById('mybadge-'+id);
+      const sub   = document.getElementById('mysub-'+id);
+      if(!badge || !sub) return;
+      if(!doc.exists){ sub.textContent='bulunamadı'; return; }
+      const d = doc.data();
+      const st = d.status || 'alindi';
+      const i = asamaIndex(st);
+      badge.className = 'badge ' + st;
+      badge.textContent = st==='reddedildi' ? 'Reddedildi' : (ASAMALAR[i] ? ASAMALAR[i].ad : 'Alındı');
+      const toplam = (d.items||[]).reduce((s,it)=>s+(+it.adet||0),0);
+      sub.textContent = `${toplam} koli · teslim ${tarihYaz(d.teslimTarihi)}`;
+    }, err=>{});
+    gecmisUnsub.push(u);
+  });
+}
+function takibeGit(id){
+  db.collection('gulgun_siparisleri').doc(id).get().then(doc=>{
+    if(!doc.exists){ toast("Sipariş bulunamadı"); return; }
+    const d = doc.data();
+    showReceipt(d.items||[], d.not||'', d.teslimTarihi||'');
+    takipBaslat(id);
+  }).catch(()=>toast("Açılamadı"));
+}
+function siparisEkraninaDon(){
+  if(takipUnsub){ takipUnsub(); takipUnsub=null; }
+  document.getElementById('doneView').classList.add('hide');
+  document.getElementById('orderView').classList.remove('hide');
+  document.getElementById('orderBar').classList.remove('hide');
+  gecmisiCiz();
+  window.scrollTo(0,0);
+}
+
+/* Müşteri: siparişini canlı takip et */
+let takipUnsub = null;
+function takipBaslat(id){
+  try{ sessionStorage.setItem('gk_son_siparis', id); }catch(e){}
+  document.getElementById('trackId').textContent = '#'+id.slice(-5).toUpperCase();
+  if(takipUnsub) takipUnsub();
+  takipUnsub = db.collection('gulgun_siparisleri').doc(id)
+    .onSnapshot(doc=>{
+      if(!doc.exists) return;
+      cizTimeline(doc.data().status || 'alindi', doc.data());
+    }, err=>{});
+}
+function cizTimeline(status, data){
+  const el = document.getElementById('timeline');
+  if(status === 'reddedildi'){
+    el.innerHTML = `<div class="redbox">
+      <b>Sipariş reddedildi</b>
+      <span>Lütfen Günkar Ambalaj ile iletişime geçin.</span>
+    </div>`;
+    return;
+  }
+  const cur = Math.max(0, asamaIndex(status));
+  el.innerHTML = ASAMALAR.map((a,i)=>{
+    const st = i < cur ? 'past' : (i === cur ? 'now' : 'next');
+    return `<div class="tl ${st}">
+      <div class="tl-dot">${i < cur ? '✓' : (i === cur ? '●' : '')}</div>
+      <div class="tl-body">
+        <div class="tl-ad">${a.musteri}</div>
+        ${i===cur?`<div class="tl-ac">${a.aciklama}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
 }
 function showReceipt(items, note, tarih){
   document.getElementById('receipt').innerHTML =
@@ -364,10 +553,12 @@ function showReceipt(items, note, tarih){
   window.scrollTo(0,0);
 }
 function yeniSiparis(){
+  if(takipUnsub){ takipUnsub(); takipUnsub=null; }
   PRODUCTS.forEach((p,i)=>setQ(i,0));
   document.getElementById('orderNote').value='';
   document.getElementById('teslimTarihi').value='';
   tarihDegisti();
+  gecmisiCiz();
   document.getElementById('doneView').classList.add('hide');
   document.getElementById('orderView').classList.remove('hide');
   document.getElementById('orderBar').classList.remove('hide');
@@ -379,6 +570,13 @@ function girisYap(){
     sessionStorage.setItem('gk_admin','1');
     startAdmin();
   } else { toast("Şifre hatalı"); }
+}
+function cikisYap(){
+  sessionStorage.removeItem('gk_admin');
+  document.getElementById('adminView').classList.add('hide');
+  document.getElementById('gateView').classList.remove('hide');
+  document.getElementById('pass').value = '';
+  window.scrollTo(0,0);
 }
 function startAdmin(){
   document.getElementById('gateView').classList.add('hide');
@@ -402,16 +600,27 @@ function listenOrders(){
     }, err=>{ toast("Veri okunamadı"); });
 }
 function renderOrders(){
-  const list = currentFilter==='all' ? allOrders : allOrders.filter(o=>o.status===currentFilter);
-  const newN = allOrders.filter(o=>o.status==='yeni').length;
+  let list;
+  if(currentFilter==='all')      list = allOrders;
+  else if(currentFilter==='acik') list = allOrders.filter(o=>o.status!=='teslim' && o.status!=='reddedildi');
+  else                            list = allOrders.filter(o=>o.status===currentFilter);
+
+  const newN = allOrders.filter(o=>(o.status||'alindi')==='alindi').length;
   document.getElementById('newCount').textContent = newN;
+
   const wrap = document.getElementById('orders');
   if(!list.length){ wrap.innerHTML = `<div class="empty">Bu filtrede sipariş yok.</div>`; return; }
+
   wrap.innerHTML = list.map(o=>{
     const t = o.createdAt && o.createdAt.toDate ? o.createdAt.toDate() : null;
     const time = t ? t.toLocaleString('tr-TR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
-    const st = o.status||'yeni';
-    const stLabel = {yeni:'Yeni',onaylandi:'Onaylandı',beklemede:'Beklemede',reddedildi:'Reddedildi'}[st];
+    const st = o.status || 'alindi';
+    const red = st === 'reddedildi';
+    const i = asamaIndex(st);
+    const stLabel = red ? 'Reddedildi' : (ASAMALAR[i] ? ASAMALAR[i].ad : 'Alındı');
+    const sonraki = (!red && i >= 0 && i < ASAMALAR.length-1) ? ASAMALAR[i+1] : null;
+    const onceki  = (!red && i > 0) ? ASAMALAR[i-1] : null;
+
     return `<div class="card ticket ${st}">
       <div class="stripe"></div>
       <div class="thead">
@@ -419,15 +628,22 @@ function renderOrders(){
         <span class="otime">${time}</span>
         <span class="badge ${st}">${stLabel}</span>
       </div>
+
+      ${!red ? `<div class="steps">
+        ${ASAMALAR.map((a,k)=>`<div class="step ${k<i?'past':(k===i?'now':'')}" title="${a.ad}"></div>`).join('')}
+      </div>` : ''}
+
       <div class="lines">
         ${(o.items||[]).map(it=>`<div class="line"><span>${escapeHtml(it.urun)}</span><span class="q">${it.adet} ${BIRIM}</span></div>`).join('')}
       </div>
       ${o.teslimTarihi?`<div class="teslim"><span>Teslim</span><b>${tarihYaz(o.teslimTarihi)}</b></div>`:''}
       ${o.not?`<div class="onote"><b>Not:</b> ${escapeHtml(o.not)}</div>`:''}
+
       <div class="acts">
-        ${st!=='onaylandi'?`<button class="btn onay sm" onclick="setStatus('${o.id}','onaylandi')">Onayla</button>`:''}
-        ${st!=='beklemede'?`<button class="btn beklet sm" onclick="setStatus('${o.id}','beklemede')">Beklet</button>`:''}
-        ${st!=='reddedildi'?`<button class="btn ret sm" onclick="setStatus('${o.id}','reddedildi')">Reddet</button>`:''}
+        ${sonraki ? `<button class="btn onay sm" onclick="setStatus('${o.id}','${sonraki.id}')">${sonraki.ad} →</button>` : ''}
+        ${onceki  ? `<button class="btn beklet sm" onclick="setStatus('${o.id}','${onceki.id}')">← Geri</button>` : ''}
+        ${!red && st!=='teslim' ? `<button class="btn ret sm" onclick="reddet('${o.id}')">Reddet</button>` : ''}
+        ${red ? `<button class="btn beklet sm" onclick="setStatus('${o.id}','alindi')">Geri al</button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -435,6 +651,9 @@ function renderOrders(){
 async function setStatus(id,status){
   try{ await db.collection('gulgun_siparisleri').doc(id).update({status, updatedAt: firebase.firestore.FieldValue.serverTimestamp()}); }
   catch(e){ toast("Güncellenemedi"); }
+}
+function reddet(id){
+  if(confirm("Bu sipariş reddedilsin mi? Müşteri bunu görecek.")) setStatus(id,'reddedildi');
 }
 
 /* ---------- Push kaydı ---------- */
@@ -478,6 +697,7 @@ function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
     dt.min = iso;
   }
   const isAdmin = new URLSearchParams(location.search).get('admin')==='1';
+  if(!isAdmin){ gecmisiCiz(); }
   if(isAdmin){
     document.getElementById('orderView').classList.add('hide');
     document.getElementById('orderBar').classList.add('hide');
