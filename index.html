@@ -77,6 +77,20 @@
   textarea:focus{outline:none;border-color:var(--brand)}
   textarea::placeholder{color:#9aa4b1}
 
+  /* Teslim tarihi */
+  .datefield{
+    display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;
+  }
+  .datefield input[type="date"]{
+    flex:1;border:0;background:transparent;font-family:Inter,sans-serif;font-size:16px;color:var(--ink);
+    min-height:26px;
+  }
+  .datefield input[type="date"]:focus{outline:none}
+  .datefield.empty{border-color:#f0cccc}
+  .datefield.filled{border-color:var(--onay)}
+  .datehint{font-size:12.5px;color:var(--muted);margin:8px 4px 0}
+
   /* Sticky submit */
   .bar{
     position:fixed;left:0;right:0;bottom:0;background:linear-gradient(to top,var(--paper) 62%,transparent);
@@ -140,6 +154,12 @@
   .line .q{font-family:'JetBrains Mono',monospace;font-weight:700}
   .onote{font-size:13.5px;color:var(--muted);background:var(--paper);border-radius:9px;padding:10px 12px;margin-bottom:12px;line-height:1.4}
   .onote b{color:var(--ink);font-weight:600}
+  .teslim{
+    display:flex;align-items:center;justify-content:space-between;margin:0 0 10px;padding:9px 12px;
+    background:#EEF3FF;border:1px solid #D6E1FA;border-radius:9px;font-size:13.5px;
+  }
+  .teslim span{color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-size:11px}
+  .teslim b{color:var(--brand);font-weight:700;font-size:14.5px}
   .acts{display:flex;gap:8px}
   .acts .btn{flex:1}
   .btn.onay{background:var(--onay)} .btn.beklet{background:var(--beklet)} .btn.ret{background:var(--surface);color:var(--ret);border:1px solid #f0cccc}
@@ -167,8 +187,14 @@
   <div class="sec-label">Ürünler</div>
   <div class="card" id="prodList"><!-- js --></div>
 
+  <div class="sec-label">Teslim tarihi</div>
+  <div class="datefield empty" id="dateWrap">
+    <input type="date" id="teslimTarihi" onchange="tarihDegisti()" />
+  </div>
+  <div class="datehint">Siparişi göndermek için teslim tarihi seçilmelidir.</div>
+
   <div class="sec-label">Sipariş notu</div>
-  <textarea id="orderNote" placeholder="Teslim tarihi, baskı, palet düzeni… (opsiyonel)"></textarea>
+  <textarea id="orderNote" placeholder="Baskı, palet düzeni, özel istek… (opsiyonel)"></textarea>
 
   <div class="footlink"><a href="?admin=1">Yönetim girişi</a></div>
 </div>
@@ -290,30 +316,47 @@ function updateTotals(){
   PRODUCTS.forEach(p=>{ if(qty[p]>0){lines++; total+=qty[p];} });
   document.getElementById('totQty').textContent = total;
   document.getElementById('totLines').textContent = lines;
-  document.getElementById('sendBtn').disabled = lines===0;
+  const tarih = document.getElementById('teslimTarihi').value;
+  document.getElementById('sendBtn').disabled = (lines===0 || !tarih);
+}
+function tarihDegisti(){
+  const v = document.getElementById('teslimTarihi').value;
+  const w = document.getElementById('dateWrap');
+  w.classList.toggle('filled', !!v);
+  w.classList.toggle('empty', !v);
+  updateTotals();
+}
+function tarihYaz(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return new Date(+y, +m-1, +d).toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'});
 }
 
 async function siparisGonder(){
   const items = PRODUCTS.filter(p=>qty[p]>0).map(p=>({urun:p, adet:qty[p]}));
+  const tarih = document.getElementById('teslimTarihi').value;
   if(!items.length) return;
+  if(!tarih){ toast("Teslim tarihi seçin"); return; }
   const btn = document.getElementById('sendBtn');
   btn.disabled = true; btn.textContent = "Gönderiliyor…";
   try{
     await db.collection('gulgun_siparisleri').add({
       items,
+      teslimTarihi: tarih,
       not: document.getElementById('orderNote').value.trim(),
       status: 'yeni',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    showReceipt(items, document.getElementById('orderNote').value.trim());
+    showReceipt(items, document.getElementById('orderNote').value.trim(), tarih);
   }catch(e){
     btn.disabled=false; btn.textContent="Siparişi gönder";
     toast("Gönderilemedi — bağlantıyı kontrol et");
   }
 }
-function showReceipt(items, note){
+function showReceipt(items, note, tarih){
   document.getElementById('receipt').innerHTML =
     items.map(it=>`<div class="row"><span>${it.urun}</span><span class="q">${it.adet} ${BIRIM}</span></div>`).join('') +
+    `<div class="row"><span style="color:var(--muted)">Teslim tarihi</span><span style="font-weight:600">${tarihYaz(tarih)}</span></div>` +
     (note?`<div class="row"><span style="color:var(--muted)">Not</span><span style="max-width:60%;text-align:right">${escapeHtml(note)}</span></div>`:'');
   document.getElementById('orderView').classList.add('hide');
   document.getElementById('orderBar').classList.add('hide');
@@ -323,6 +366,8 @@ function showReceipt(items, note){
 function yeniSiparis(){
   PRODUCTS.forEach((p,i)=>setQ(i,0));
   document.getElementById('orderNote').value='';
+  document.getElementById('teslimTarihi').value='';
+  tarihDegisti();
   document.getElementById('doneView').classList.add('hide');
   document.getElementById('orderView').classList.remove('hide');
   document.getElementById('orderBar').classList.remove('hide');
@@ -377,6 +422,7 @@ function renderOrders(){
       <div class="lines">
         ${(o.items||[]).map(it=>`<div class="line"><span>${escapeHtml(it.urun)}</span><span class="q">${it.adet} ${BIRIM}</span></div>`).join('')}
       </div>
+      ${o.teslimTarihi?`<div class="teslim"><span>Teslim</span><b>${tarihYaz(o.teslimTarihi)}</b></div>`:''}
       ${o.not?`<div class="onote"><b>Not:</b> ${escapeHtml(o.not)}</div>`:''}
       <div class="acts">
         ${st!=='onaylandi'?`<button class="btn onay sm" onclick="setStatus('${o.id}','onaylandi')">Onayla</button>`:''}
@@ -424,6 +470,13 @@ function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 /* ---------- yönlendirme ---------- */
 (function init(){
   renderProducts();
+  // Teslim tarihi: bugünden öncesi seçilemesin
+  const dt = document.getElementById('teslimTarihi');
+  if(dt){
+    const t = new Date();
+    const iso = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+    dt.min = iso;
+  }
   const isAdmin = new URLSearchParams(location.search).get('admin')==='1';
   if(isAdmin){
     document.getElementById('orderView').classList.add('hide');
