@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Gülgün Sipariş" />
 <meta name="theme-color" content="#10151C" />
+<link rel="apple-touch-icon" href="logo.png" />
+<link rel="icon" href="logo.png" />
 <title>Gülgün Süt · Sipariş</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -37,9 +39,10 @@
   /* Header */
   .top{display:flex;align-items:center;gap:12px;padding:18px 4px 22px}
   .mark{
-    width:40px;height:40px;border-radius:10px;background:var(--ink);color:#fff;
-    display:grid;place-items:center;font-family:Archivo,sans-serif;font-weight:800;font-size:18px;letter-spacing:-.5px;flex:0 0 auto;
+    width:40px;height:40px;border-radius:10px;background:var(--surface);border:1px solid var(--line);
+    display:grid;place-items:center;overflow:hidden;flex:0 0 auto;
   }
+  .mark img{width:100%;height:100%;object-fit:contain;display:block}
   .top h1{font-family:Archivo,sans-serif;font-weight:800;font-size:19px;letter-spacing:-.4px;margin:0;line-height:1.1}
   .top .sub{font-size:12.5px;color:var(--muted);margin-top:2px;letter-spacing:.2px}
 
@@ -154,7 +157,7 @@
 <!-- ============ MÜŞTERİ: SİPARİŞ EKRANI ============ -->
 <div id="orderView" class="wrap">
   <div class="top">
-    <div class="mark">G</div>
+    <div class="mark"><img src="logo.png" alt="Gülgün" /></div>
     <div>
       <h1>Gülgün Süt · Sipariş</h1>
       <div class="sub">Günkar Ambalaj — karton koli</div>
@@ -193,7 +196,7 @@
 
 <!-- ============ YÖNETİM: ŞİFRE ============ -->
 <div id="gateView" class="gate hide">
-  <div class="mark">G</div>
+  <div class="mark"><img src="logo.png" alt="Gülgün" /></div>
   <h2>Yönetim girişi</h2>
   <input id="pass" type="password" inputmode="numeric" placeholder="Şifre" onkeydown="if(event.key==='Enter')girisYap()" />
   <button class="btn" style="width:100%" onclick="girisYap()">Gir</button>
@@ -202,9 +205,12 @@
 <!-- ============ YÖNETİM: PANEL ============ -->
 <div id="adminView" class="wrap hide">
   <div class="adminhead">
-    <div>
-      <h1>Gülgün siparişleri</h1>
-      <div class="cnt"><span id="newCount">0</span> yeni · canlı</div>
+    <div style="display:flex;align-items:center;gap:11px">
+      <div class="mark"><img src="logo.png" alt="Gülgün" /></div>
+      <div>
+        <h1>Gülgün siparişleri</h1>
+        <div class="cnt"><span id="newCount">0</span> yeni · canlı</div>
+      </div>
     </div>
     <button class="btn ghost sm" onclick="location.href='?'">Çıkış</button>
   </div>
