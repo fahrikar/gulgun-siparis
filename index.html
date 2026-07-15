@@ -797,7 +797,7 @@ function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
   const dt = document.getElementById('teslimTarihi');
   if(dt){ dt.min = isoTarih(enErkenTeslim()); }
   const isAdmin = new URLSearchParams(location.search).get('admin')==='1';
-  if(!isAdmin){ gecmisiCiz(); }
+  if(!isAdmin){ takipCiz(); }
   if(isAdmin){
     document.getElementById('orderView').classList.add('hide');
     document.getElementById('orderBar').classList.add('hide');
