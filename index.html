@@ -101,6 +101,21 @@
   .datehint{font-size:12.5px;color:var(--muted);margin:8px 4px 0}
   .datehint.warn{color:#a86a00}
 
+  /* Fiyat özeti (sipariş ekranı) */
+  .fiyatozet{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:14px 16px;margin-top:14px;
+  }
+  .fiyatozet .fr{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14.5px;color:var(--muted)}
+  .fiyatozet .fr b{color:var(--ink);font-weight:600;font-family:'JetBrains Mono',monospace}
+  .fiyatozet .fr.big{border-top:1px solid var(--line);margin-top:5px;padding-top:11px;font-size:16px;color:var(--ink)}
+  .fiyatozet .fr.big b{color:var(--brand);font-weight:800;font-size:17px}
+  /* Takip kartı toplamları */
+  .ttot{display:flex;justify-content:space-between;padding:6px 2px;font-size:13.5px;color:var(--muted);border-top:1px dashed var(--line)}
+  .ttot b{color:var(--ink);font-weight:600;font-family:'JetBrains Mono',monospace}
+  .ttot.big{border-top:1px solid var(--line);margin-top:2px;padding-top:9px;font-size:15px;color:var(--ink)}
+  .ttot.big b{color:var(--brand);font-weight:800}
+
   /* Sticky submit */
   .bar{
     position:fixed;left:0;right:0;bottom:0;background:linear-gradient(to top,var(--paper) 62%,transparent);
@@ -210,6 +225,7 @@
   .line{display:flex;justify-content:space-between;padding:9px 2px;font-size:14.5px;border-bottom:1px dashed var(--line)}
   .line:last-child{border-bottom:0}
   .line .q{font-family:'JetBrains Mono',monospace;font-weight:700}
+  .line .lref{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px;font-family:Inter,sans-serif}
   .onote{font-size:13.5px;color:var(--muted);background:var(--paper);border-radius:9px;padding:10px 12px;margin-bottom:12px;line-height:1.4}
   .onote b{color:var(--ink);font-weight:600}
   .teslim{
@@ -242,11 +258,6 @@
     </div>
   </div>
 
-  <div id="myOrdersWrap" class="hide">
-    <div class="sec-label">Siparişlerim</div>
-    <div class="card" id="myOrders"></div>
-  </div>
-
   <div class="sec-label">Ürünler</div>
   <div class="card" id="prodList"><!-- js --></div>
 
@@ -255,15 +266,23 @@
     <span class="dlabel"><span class="dicon">📅</span>Teslim</span>
     <input type="date" id="teslimTarihi" onchange="tarihDegisti()" onclick="event.stopPropagation()" />
   </div>
-  <div class="datehint" id="dateHint">Sipariş göndermek için tarih seçin.</div>
+  <div class="datehint" id="dateHint">En erken 1 hafta sonrası için sipariş verilebilir.</div>
 
   <div class="sec-label">Sipariş notu</div>
   <textarea id="orderNote" placeholder="Baskı, palet düzeni, özel istek… (opsiyonel)"></textarea>
+
+  <div class="fiyatozet hide" id="fiyatOzet"></div>
+
+  <!-- ===== CANLI SİPARİŞ TAKİBİ (aynı sayfada) ===== -->
+  <div id="takipWrap" class="hide">
+    <div class="sec-label">Sipariş takibi <span class="live">● canlı</span></div>
+    <div id="takipList"></div>
+  </div>
 </div>
 
 <div id="orderBar" class="bar">
   <div class="inner">
-    <div class="total">
+    <div class="total" id="totLabel">
       <div class="n"><span id="totQty">0</span> koli</div>
       <div class="l"><span id="totLines">0</span> ürün seçildi</div>
     </div>
@@ -272,26 +291,6 @@
 </div>
 
 <!-- ============ MÜŞTERİ: TAKİP EKRANI ============ -->
-<div id="doneView" class="wrap hide">
-  <div class="top">
-    <div class="mark"><img src="logo.png" alt="Gülgün" /></div>
-    <div>
-      <h1>Sipariş takibi</h1>
-      <div class="sub">Sipariş <span id="trackId">—</span></div>
-    </div>
-  </div>
-
-  <div class="card" id="trackCard">
-    <div id="timeline"></div>
-  </div>
-
-  <div class="sec-label">Sipariş özeti</div>
-  <div class="card receipt" id="receipt"></div>
-
-  <button class="btn ghost" style="width:100%;margin-top:22px" onclick="yeniSiparis()">Yeni sipariş oluştur</button>
-  <div class="footlink"><a href="#" onclick="siparisEkraninaDon();return false;">← Siparişlerime dön</a></div>
-</div>
-
 <!-- ============ YÖNETİM: ŞİFRE ============ -->
 <div id="gateView" class="gate hide">
   <div class="mark"><img src="logo.png" alt="Gülgün" /></div>
@@ -350,9 +349,21 @@ const VAPID_KEY = "BCw8eF8mrZ5SjUsD2OjEnE3hPTyDWhTr3io2Vv1e2ZuyjizrZKroAyPyuIi6A
 /* Yönetim şifresi (istediğinle değiştir) */
 const ADMIN_SIFRE = "gunkar";
 
-/* Ürünler — sonra buradan değiştir/çoğalt */
-const PRODUCTS = ["10kg Halloumi Cheese","5kg Halloumi Cheese","Milba","Kaşar","Ürün 5","Ürün 6","Ürün 7"];
+/* Ürünler — müşteri: ad + fiyat görür. olcu/kalite yalnız panelde (senin referansın).
+   Fiyatları Günkar Fiyat uygulamasında hesaplayıp buraya yaz. */
+const PRODUCTS = [
+  { ad:"10kg Halloumi Cheese", fiyat:0, olcu:"", kalite:"" },
+  { ad:"5kg Halloumi Cheese",  fiyat:0, olcu:"", kalite:"" },
+  { ad:"Milba",                fiyat:0, olcu:"", kalite:"" },
+  { ad:"Kaşar",                fiyat:0, olcu:"", kalite:"" },
+  { ad:"Ürün 5",               fiyat:0, olcu:"", kalite:"" },
+  { ad:"Ürün 6",               fiyat:0, olcu:"", kalite:"" },
+  { ad:"Ürün 7",               fiyat:0, olcu:"", kalite:"" }
+];
 const BIRIM = "koli";
+const KDV_ORANI = 20;   // % — gerekirse değiştir
+
+const fmtTL = n => new Intl.NumberFormat('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n) + ' ₺';
 
 /* Sipariş aşamaları (sıralı) */
 const ASAMALAR = [
@@ -370,15 +381,16 @@ const db = firebase.firestore();
 let messaging = null;
 try { messaging = firebase.messaging(); } catch(e){ /* desteklenmeyen tarayıcı */ }
 
-const qty = {};
-PRODUCTS.forEach(p => qty[p] = 0);
+const qty = PRODUCTS.map(()=>0);
 
 /* ---------- Sipariş ekranı ---------- */
 function renderProducts(){
   const el = document.getElementById('prodList');
   el.innerHTML = PRODUCTS.map((p,i)=>`
     <div class="prod" id="prod-${i}">
-      <div class="name">${p}<div class="unit">${BIRIM}</div></div>
+      <div class="name">${p.ad}
+        <div class="unit">${p.fiyat>0 ? fmtTL(p.fiyat)+' / '+BIRIM : BIRIM}</div>
+      </div>
       <div class="stepper">
         <button aria-label="azalt" onclick="chg(${i},-1)">−</button>
         <input id="q-${i}" type="number" min="0" value="0" inputmode="numeric"
@@ -387,21 +399,47 @@ function renderProducts(){
       </div>
     </div>`).join('');
 }
-function chg(i,d){ setQ(i, (qty[PRODUCTS[i]]||0)+d); }
+function chg(i,d){ setQ(i, (qty[i]||0)+d); }
 function setQ(i,v){
   let n = Math.max(0, parseInt(v)||0);
-  qty[PRODUCTS[i]] = n;
+  qty[i] = n;
   document.getElementById('q-'+i).value = n;
   document.getElementById('prod-'+i).classList.toggle('active', n>0);
   updateTotals();
 }
+function hesapla(){
+  let lines=0, koli=0, araToplam=0;
+  PRODUCTS.forEach((p,i)=>{
+    if(qty[i]>0){ lines++; koli+=qty[i]; araToplam += qty[i]*(p.fiyat||0); }
+  });
+  const kdv = araToplam * KDV_ORANI/100;
+  return { lines, koli, araToplam, kdv, genel: araToplam+kdv };
+}
 function updateTotals(){
-  let lines=0, total=0;
-  PRODUCTS.forEach(p=>{ if(qty[p]>0){lines++; total+=qty[p];} });
-  document.getElementById('totQty').textContent = total;
-  document.getElementById('totLines').textContent = lines;
+  const h = hesapla();
+  document.getElementById('totQty').textContent = h.koli;
   const tarih = document.getElementById('teslimTarihi').value;
-  document.getElementById('sendBtn').disabled = (lines===0 || !tarih);
+
+  // Fiyat özeti (fiyat girilmişse göster)
+  const box = document.getElementById('fiyatOzet');
+  if(box){
+    if(h.araToplam>0){
+      box.classList.remove('hide');
+      box.innerHTML =
+        `<div class="fr"><span>Ara toplam</span><b>${fmtTL(h.araToplam)}</b></div>`+
+        `<div class="fr"><span>KDV (%${KDV_ORANI})</span><b>${fmtTL(h.kdv)}</b></div>`+
+        `<div class="fr big"><span>Genel toplam</span><b>${fmtTL(h.genel)}</b></div>`;
+    } else {
+      box.classList.add('hide');
+    }
+  }
+  // Alt bardaki etiket
+  const lbl = document.getElementById('totLabel');
+  if(lbl) lbl.innerHTML = h.genel>0
+    ? `<div class="n">${fmtTL(h.genel)}</div><div class="l">${h.koli} koli · KDV dahil</div>`
+    : `<div class="n">${h.koli} koli</div><div class="l">${h.lines} ürün seçildi</div>`;
+
+  document.getElementById('sendBtn').disabled = (h.lines===0 || !tarih);
 }
 function takvimAc(){
   const dt = document.getElementById('teslimTarihi');
@@ -418,7 +456,7 @@ function tarihDegisti(){
   w.classList.toggle('filled', !!v);
   w.classList.toggle('empty', !v);
   if(h){
-    h.textContent = v ? tarihYaz(v) + ' tarihinde teslim edilecek.' : 'Sipariş göndermek için tarih seçin.';
+    h.textContent = v ? tarihYaz(v) + ' tarihinde teslim edilecek.' : 'En erken 1 hafta sonrası için sipariş verilebilir.';
     h.classList.toggle('warn', !v);
   }
   updateTotals();
@@ -430,30 +468,48 @@ function tarihYaz(iso){
 }
 
 async function siparisGonder(){
-  const items = PRODUCTS.filter(p=>qty[p]>0).map(p=>({urun:p, adet:qty[p]}));
+  const items = PRODUCTS
+    .map((p,i)=>({ urun:p.ad, adet:qty[i], fiyat:p.fiyat||0, olcu:p.olcu||"", kalite:p.kalite||"" }))
+    .filter(x=>x.adet>0);
   const tarih = document.getElementById('teslimTarihi').value;
   if(!items.length) return;
   if(!tarih){ toast("Teslim tarihi seçin"); return; }
+  // En erken 1 hafta sonrası kontrolü (elle erken tarih girilmesine karşı)
+  const enErken = new Date(); enErken.setHours(0,0,0,0); enErken.setDate(enErken.getDate()+7);
+  const secilen = new Date(tarih+'T00:00:00');
+  if(secilen < enErken){ toast("En erken 1 hafta sonrası seçilebilir"); return; }
+  const h = hesapla();
   const btn = document.getElementById('sendBtn');
   btn.disabled = true; btn.textContent = "Gönderiliyor…";
   try{
     const ref = await db.collection('gulgun_siparisleri').add({
       items,
       teslimTarihi: tarih,
+      araToplam: h.araToplam,
+      kdvOrani: KDV_ORANI,
+      kdv: h.kdv,
+      genelToplam: h.genel,
       not: document.getElementById('orderNote').value.trim(),
       status: 'alindi',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    showReceipt(items, document.getElementById('orderNote').value.trim(), tarih);
     gecmiseEkle(ref.id);
-    takipBaslat(ref.id);
+    acikTakip = ref.id;
+    formuSifirla();
+    takipCiz();
+    btn.textContent = "Siparişi gönder";
+    toast("✓ Siparişiniz iletildi");
+    setTimeout(()=>{
+      const w = document.getElementById('takipWrap');
+      if(w) w.scrollIntoView({behavior:'smooth', block:'start'});
+    }, 250);
   }catch(e){
     btn.disabled=false; btn.textContent="Siparişi gönder";
     toast("Gönderilemedi — bağlantıyı kontrol et");
   }
 }
 
-/* ---------- Müşteri: cihazdaki sipariş geçmişi ---------- */
+/* ---------- Müşteri: cihazdaki sipariş geçmişi + canlı takip ---------- */
 const GECMIS_KEY = 'gk_siparislerim';
 function gecmisOku(){
   try{ return JSON.parse(localStorage.getItem(GECMIS_KEY) || '[]'); }catch(e){ return []; }
@@ -465,71 +521,74 @@ function gecmiseEkle(id){
     localStorage.setItem(GECMIS_KEY, JSON.stringify(l.slice(0,20)));
   }catch(e){}
 }
-let gecmisUnsub = [];
-function gecmisiCiz(){
+
+let takipUnsub = [];
+let acikTakip = null;   // hangi sipariş genişletilmiş
+
+function takipCiz(){
   const ids = gecmisOku();
-  const wrap = document.getElementById('myOrdersWrap');
-  const el = document.getElementById('myOrders');
+  const wrap = document.getElementById('takipWrap');
+  const el   = document.getElementById('takipList');
   if(!ids.length){ wrap.classList.add('hide'); return; }
   wrap.classList.remove('hide');
+
+  if(!acikTakip) acikTakip = ids[0];
+
   el.innerHTML = ids.map(id=>`
-    <div class="myrow" id="my-${id}" onclick="takibeGit('${id}')">
-      <div class="myrow-l">
-        <div class="myrow-id">#${id.slice(-5).toUpperCase()}</div>
-        <div class="myrow-sub" id="mysub-${id}">yükleniyor…</div>
+    <div class="tcard card" id="t-${id}">
+      <div class="thead2" onclick="takipAc('${id}')">
+        <div class="thead2-l">
+          <div class="oid">#${id.slice(-5).toUpperCase()}</div>
+          <div class="tsub" id="tsub-${id}">yükleniyor…</div>
+        </div>
+        <span class="badge alindi" id="tbadge-${id}">—</span>
+        <span class="chev" id="tchev-${id}">${id===acikTakip?'▴':'▾'}</span>
       </div>
-      <span class="badge alindi" id="mybadge-${id}">—</span>
+      <div class="tbody ${id===acikTakip?'':'hide'}" id="tbody-${id}">
+        <div id="ttl-${id}"></div>
+        <div class="titems" id="titems-${id}"></div>
+      </div>
     </div>`).join('');
 
-  gecmisUnsub.forEach(u=>u()); gecmisUnsub = [];
+  takipUnsub.forEach(u=>u()); takipUnsub = [];
   ids.forEach(id=>{
     const u = db.collection('gulgun_siparisleri').doc(id).onSnapshot(doc=>{
-      const badge = document.getElementById('mybadge-'+id);
-      const sub   = document.getElementById('mysub-'+id);
+      const badge = document.getElementById('tbadge-'+id);
+      const sub   = document.getElementById('tsub-'+id);
       if(!badge || !sub) return;
-      if(!doc.exists){ sub.textContent='bulunamadı'; return; }
-      const d = doc.data();
+      if(!doc.exists){ sub.textContent = 'bulunamadı'; return; }
+      const d  = doc.data();
       const st = d.status || 'alindi';
-      const i = asamaIndex(st);
+      const i  = asamaIndex(st);
+
       badge.className = 'badge ' + st;
       badge.textContent = st==='reddedildi' ? 'Reddedildi' : (ASAMALAR[i] ? ASAMALAR[i].ad : 'Alındı');
+
       const toplam = (d.items||[]).reduce((s,it)=>s+(+it.adet||0),0);
       sub.textContent = `${toplam} koli · teslim ${tarihYaz(d.teslimTarihi)}`;
+
+      cizTimeline(id, st);
+      cizItems(id, d);
     }, err=>{});
-    gecmisUnsub.push(u);
+    takipUnsub.push(u);
   });
 }
-function takibeGit(id){
-  db.collection('gulgun_siparisleri').doc(id).get().then(doc=>{
-    if(!doc.exists){ toast("Sipariş bulunamadı"); return; }
-    const d = doc.data();
-    showReceipt(d.items||[], d.not||'', d.teslimTarihi||'');
-    takipBaslat(id);
-  }).catch(()=>toast("Açılamadı"));
-}
-function siparisEkraninaDon(){
-  if(takipUnsub){ takipUnsub(); takipUnsub=null; }
-  document.getElementById('doneView').classList.add('hide');
-  document.getElementById('orderView').classList.remove('hide');
-  document.getElementById('orderBar').classList.remove('hide');
-  gecmisiCiz();
-  window.scrollTo(0,0);
+
+function takipAc(id){
+  acikTakip = (acikTakip === id) ? null : id;
+  gecmisOku().forEach(x=>{
+    const b = document.getElementById('tbody-'+x);
+    const c = document.getElementById('tchev-'+x);
+    if(!b||!c) return;
+    const open = (x === acikTakip);
+    b.classList.toggle('hide', !open);
+    c.textContent = open ? '▴' : '▾';
+  });
 }
 
-/* Müşteri: siparişini canlı takip et */
-let takipUnsub = null;
-function takipBaslat(id){
-  try{ sessionStorage.setItem('gk_son_siparis', id); }catch(e){}
-  document.getElementById('trackId').textContent = '#'+id.slice(-5).toUpperCase();
-  if(takipUnsub) takipUnsub();
-  takipUnsub = db.collection('gulgun_siparisleri').doc(id)
-    .onSnapshot(doc=>{
-      if(!doc.exists) return;
-      cizTimeline(doc.data().status || 'alindi', doc.data());
-    }, err=>{});
-}
-function cizTimeline(status, data){
-  const el = document.getElementById('timeline');
+function cizTimeline(id, status){
+  const el = document.getElementById('ttl-'+id);
+  if(!el) return;
   if(status === 'reddedildi'){
     el.innerHTML = `<div class="redbox">
       <b>Sipariş reddedildi</b>
@@ -549,26 +608,35 @@ function cizTimeline(status, data){
     </div>`;
   }).join('');
 }
-function showReceipt(items, note, tarih){
-  document.getElementById('receipt').innerHTML =
-    items.map(it=>`<div class="row"><span>${it.urun}</span><span class="q">${it.adet} ${BIRIM}</span></div>`).join('') +
-    `<div class="row"><span style="color:var(--muted)">Teslim tarihi</span><span style="font-weight:600">${tarihYaz(tarih)}</span></div>` +
-    (note?`<div class="row"><span style="color:var(--muted)">Not</span><span style="max-width:60%;text-align:right">${escapeHtml(note)}</span></div>`:'');
-  document.getElementById('orderView').classList.add('hide');
-  document.getElementById('orderBar').classList.add('hide');
-  document.getElementById('doneView').classList.remove('hide');
-  window.scrollTo(0,0);
+
+function cizItems(id, d){
+  const el = document.getElementById('titems-'+id);
+  if(!el) return;
+  const satirlar = (d.items||[]).map(it=>{
+    const tut = (it.fiyat||0) * (it.adet||0);
+    const sag = (it.fiyat>0)
+      ? `<span class="q">${it.adet} × ${fmtTL(it.fiyat)} = <b>${fmtTL(tut)}</b></span>`
+      : `<span class="q">${it.adet} ${BIRIM}</span>`;
+    return `<div class="line"><span>${escapeHtml(it.urun)}</span>${sag}</div>`;
+  }).join('');
+
+  let toplamHtml = '';
+  if(d.genelToplam>0){
+    toplamHtml =
+      `<div class="ttot"><span>Ara toplam</span><b>${fmtTL(d.araToplam||0)}</b></div>`+
+      `<div class="ttot"><span>KDV (%${d.kdvOrani||KDV_ORANI})</span><b>${fmtTL(d.kdv||0)}</b></div>`+
+      `<div class="ttot big"><span>Genel toplam</span><b>${fmtTL(d.genelToplam)}</b></div>`;
+  }
+
+  el.innerHTML = satirlar + toplamHtml +
+    (d.not?`<div class="onote" style="margin:10px 0 0"><b>Not:</b> ${escapeHtml(d.not)}</div>`:'');
 }
-function yeniSiparis(){
-  if(takipUnsub){ takipUnsub(); takipUnsub=null; }
+
+function formuSifirla(){
   PRODUCTS.forEach((p,i)=>setQ(i,0));
   document.getElementById('orderNote').value='';
   document.getElementById('teslimTarihi').value='';
   tarihDegisti();
-  gecmisiCiz();
-  document.getElementById('doneView').classList.add('hide');
-  document.getElementById('orderView').classList.remove('hide');
-  document.getElementById('orderBar').classList.remove('hide');
 }
 
 /* ---------- Yönetim ---------- */
@@ -641,8 +709,14 @@ function renderOrders(){
       </div>` : ''}
 
       <div class="lines">
-        ${(o.items||[]).map(it=>`<div class="line"><span>${escapeHtml(it.urun)}</span><span class="q">${it.adet} ${BIRIM}</span></div>`).join('')}
+        ${(o.items||[]).map(it=>{
+          const tut=(it.fiyat||0)*(it.adet||0);
+          const sag=(it.fiyat>0)?`${it.adet} × ${fmtTL(it.fiyat)} = ${fmtTL(tut)}`:`${it.adet} ${BIRIM}`;
+          const ref=[it.olcu,it.kalite].filter(Boolean).join(' · ');
+          return `<div class="line"><span>${escapeHtml(it.urun)}${ref?`<span class="lref">${escapeHtml(ref)}</span>`:''}</span><span class="q">${sag}</span></div>`;
+        }).join('')}
       </div>
+      ${o.genelToplam>0?`<div class="teslim" style="background:#F1F6F2;border-color:#CDE6D3"><span>Genel toplam (KDV dahil)</span><b style="color:var(--onay)">${fmtTL(o.genelToplam)}</b></div>`:''}
       ${o.teslimTarihi?`<div class="teslim"><span>Teslim</span><b>${tarihYaz(o.teslimTarihi)}</b></div>`:''}
       ${o.not?`<div class="onote"><b>Not:</b> ${escapeHtml(o.not)}</div>`:''}
 
@@ -696,10 +770,11 @@ function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 /* ---------- yönlendirme ---------- */
 (function init(){
   renderProducts();
-  // Teslim tarihi: bugünden öncesi seçilemesin
+  // Teslim tarihi: en erken 1 hafta (7 gün) sonrası seçilebilir
   const dt = document.getElementById('teslimTarihi');
   if(dt){
     const t = new Date();
+    t.setDate(t.getDate() + 7);
     const iso = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
     dt.min = iso;
   }
