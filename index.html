@@ -441,6 +441,13 @@ function updateTotals(){
 
   document.getElementById('sendBtn').disabled = (h.lines===0 || !tarih);
 }
+function enErkenTeslim(){
+  const t = new Date(); t.setHours(0,0,0,0); t.setDate(t.getDate()+7);
+  return t;
+}
+function isoTarih(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 function takvimAc(){
   const dt = document.getElementById('teslimTarihi');
   if(!dt) return;
@@ -450,9 +457,26 @@ function takvimAc(){
   }
 }
 function tarihDegisti(){
-  const v = document.getElementById('teslimTarihi').value;
+  const dt = document.getElementById('teslimTarihi');
+  let v = dt.value;
   const w = document.getElementById('dateWrap');
   const h = document.getElementById('dateHint');
+
+  // iOS min sınırını tam uygulamadığı için burada zorla
+  if(v){
+    const secilen = new Date(v+'T00:00:00');
+    const min = enErkenTeslim();
+    if(secilen < min){
+      v = '';
+      dt.value = '';
+      if(h){ h.textContent = 'En erken '+tarihYaz(isoTarih(min))+' seçilebilir (1 hafta).'; h.classList.add('warn'); }
+      w.classList.add('empty'); w.classList.remove('filled');
+      updateTotals();
+      toast('En erken 1 hafta sonrası seçilebilir');
+      return;
+    }
+  }
+
   w.classList.toggle('filled', !!v);
   w.classList.toggle('empty', !v);
   if(h){
@@ -475,9 +499,8 @@ async function siparisGonder(){
   if(!items.length) return;
   if(!tarih){ toast("Teslim tarihi seçin"); return; }
   // En erken 1 hafta sonrası kontrolü (elle erken tarih girilmesine karşı)
-  const enErken = new Date(); enErken.setHours(0,0,0,0); enErken.setDate(enErken.getDate()+7);
   const secilen = new Date(tarih+'T00:00:00');
-  if(secilen < enErken){ toast("En erken 1 hafta sonrası seçilebilir"); return; }
+  if(secilen < enErkenTeslim()){ toast("En erken 1 hafta sonrası seçilebilir"); return; }
   const h = hesapla();
   const btn = document.getElementById('sendBtn');
   btn.disabled = true; btn.textContent = "Gönderiliyor…";
@@ -772,12 +795,7 @@ function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
   renderProducts();
   // Teslim tarihi: en erken 1 hafta (7 gün) sonrası seçilebilir
   const dt = document.getElementById('teslimTarihi');
-  if(dt){
-    const t = new Date();
-    t.setDate(t.getDate() + 7);
-    const iso = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
-    dt.min = iso;
-  }
+  if(dt){ dt.min = isoTarih(enErkenTeslim()); }
   const isAdmin = new URLSearchParams(location.search).get('admin')==='1';
   if(!isAdmin){ gecmisiCiz(); }
   if(isAdmin){
