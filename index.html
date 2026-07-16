@@ -283,7 +283,7 @@
 <div id="orderBar" class="bar">
   <div class="inner">
     <div class="total" id="totLabel">
-      <div class="n"><span id="totQty">0</span> koli</div>
+      <div class="n"><span id="totQty">0</span> adet</div>
       <div class="l"><span id="totLines">0</span> ürün seçildi</div>
     </div>
     <button class="btn" id="sendBtn" disabled onclick="siparisGonder()">Siparişi gönder</button>
@@ -360,7 +360,7 @@ const PRODUCTS = [
   { ad:"Ürün 6",               fiyat:0, olcu:"", kalite:"" },
   { ad:"Ürün 7",               fiyat:0, olcu:"", kalite:"" }
 ];
-const BIRIM = "koli";
+const BIRIM = "adet";
 const KDV_ORANI = 20;   // % — gerekirse değiştir
 
 const fmtTL = n => new Intl.NumberFormat('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n) + ' ₺';
@@ -435,8 +435,8 @@ function updateTotals(){
   // Alt bardaki etiket — tüm içeriği tek seferde yaz (totQty'ye ayrıca dokunma)
   const lbl = document.getElementById('totLabel');
   if(lbl) lbl.innerHTML = h.genel>0
-    ? `<div class="n">${fmtTL(h.genel)}</div><div class="l">${h.koli} koli · KDV dahil</div>`
-    : `<div class="n">${h.koli} koli</div><div class="l">${h.lines} ürün seçildi</div>`;
+    ? `<div class="n">${fmtTL(h.genel)}</div><div class="l">${h.koli} adet · KDV dahil</div>`
+    : `<div class="n">${h.koli} adet</div><div class="l">${h.lines} ürün seçildi</div>`;
 
   const sb = document.getElementById('sendBtn');
   if(sb) sb.disabled = (h.lines===0 || !tarih);
@@ -588,7 +588,7 @@ function takipCiz(){
       badge.textContent = st==='reddedildi' ? 'Reddedildi' : (ASAMALAR[i] ? ASAMALAR[i].ad : 'Alındı');
 
       const toplam = (d.items||[]).reduce((s,it)=>s+(+it.adet||0),0);
-      sub.textContent = `${toplam} koli · teslim ${tarihYaz(d.teslimTarihi)}`;
+      sub.textContent = `${toplam} adet · teslim ${tarihYaz(d.teslimTarihi)}`;
 
       cizTimeline(id, st);
       cizItems(id, d);
