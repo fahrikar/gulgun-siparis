@@ -79,26 +79,26 @@
 
   /* Teslim tarihi */
   .datefield{
-    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
     background:var(--surface);border:1px solid var(--line);
-    border-radius:var(--radius);box-shadow:var(--shadow);padding:13px 16px;
+    border-radius:11px;box-shadow:var(--shadow);padding:9px 13px;
     cursor:pointer;
   }
-  .datefield .dlabel{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;color:var(--ink);flex:0 0 auto}
+  .datefield .dlabel{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:var(--ink);flex:0 0 auto}
   .datefield .dicon{
-    width:30px;height:30px;border-radius:8px;background:var(--paper);display:grid;place-items:center;
-    font-size:14px;flex:0 0 auto;
+    width:24px;height:24px;border-radius:6px;background:var(--paper);display:grid;place-items:center;
+    font-size:12px;flex:0 0 auto;
   }
   .datefield input[type="date"]{
     border:0;background:transparent;font-family:'JetBrains Mono',monospace;font-weight:700;
-    font-size:16px;color:var(--brand);text-align:right;
-    min-height:34px;padding:0;margin:0;flex:1;min-width:0;
+    font-size:15px;color:var(--brand);text-align:right;
+    min-height:28px;padding:0;margin:0;flex:1;min-width:0;
   }
   .datefield input[type="date"]:focus{outline:none}
   .datefield input[type="date"]::-webkit-calendar-picker-indicator{opacity:.45;cursor:pointer}
   .datefield.empty input[type="date"]{color:#9aa4b1;font-weight:500;font-family:Inter,sans-serif}
   .datefield.filled{border-color:var(--brand)}
-  .datehint{font-size:12.5px;color:var(--muted);margin:8px 4px 0}
+  .datehint{font-size:12px;color:var(--muted);margin:7px 4px 0}
   .datehint.warn{color:#a86a00}
 
   /* Fiyat özeti (sipariş ekranı) */
@@ -243,6 +243,23 @@
 
   .footlink{text-align:center;margin:34px 0 0}
   .footlink a{color:#9aa4b1;font-size:12px;text-decoration:none;letter-spacing:.03em}
+
+  /* ===== Fiyat düzenleme modalı ===== */
+  .fmodal{position:fixed;inset:0;background:rgba(16,21,28,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+  .fsheet{background:var(--paper);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:20px 16px calc(24px + env(safe-area-inset-bottom))}
+  .fsheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .fsheet-head h2{font-family:Archivo,sans-serif;font-weight:800;font-size:19px;margin:0}
+  .fclose{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:15px;cursor:pointer;color:var(--muted)}
+  .fhint{font-size:12.5px;color:var(--muted);margin:0 0 16px;line-height:1.4}
+  .fitem{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .fitem .frow{display:flex;gap:10px;margin-bottom:8px}
+  .fitem .frow:last-child{margin-bottom:0}
+  .fitem label{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+  .fitem input{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px 12px;font-family:Inter,sans-serif;font-size:15px;color:var(--ink);outline:none}
+  .fitem input:focus{border-color:var(--brand)}
+  .fitem .fad{flex:1}
+  .fitem .ffiyat{width:120px;flex:0 0 auto}
+  .fitem .ffiyat input{font-family:'JetBrains Mono',monospace;font-weight:700;text-align:right;color:var(--brand)}
   .hide{display:none!important}
 </style>
 </head>
@@ -309,7 +326,10 @@
         <div class="cnt"><span id="newCount">0</span> yeni · canlı</div>
       </div>
     </div>
-    <button class="btn ghost sm" onclick="cikisYap()">Çıkış</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn ghost sm" onclick="fiyatEkraniAc()">Fiyatlar</button>
+      <button class="btn ghost sm" onclick="cikisYap()">Çıkış</button>
+    </div>
   </div>
 
   <div id="pushNote" class="pushnote hide">
@@ -327,6 +347,20 @@
   </div>
 
   <div id="orders"></div>
+</div>
+
+<!-- ============ FİYAT DÜZENLEME (panel) ============ -->
+<div id="fiyatModal" class="fmodal hide">
+  <div class="fsheet">
+    <div class="fsheet-head">
+      <h2>Ürün fiyatları</h2>
+      <button class="fclose" onclick="fiyatEkraniKapat()">✕</button>
+    </div>
+    <p class="fhint">Fiyatlar KDV hariç, adet başına. Müşteri KDV dahil toplamı görür. Ölçü/kalite yalnız sizde görünür.</p>
+    <div id="fiyatList"></div>
+    <button class="btn" style="width:100%;margin-top:8px" onclick="fiyatKaydet()">Kaydet</button>
+    <button class="btn ghost" style="width:100%;margin-top:10px" onclick="fiyatEkraniKapat()">Vazgeç</button>
+  </div>
 </div>
 
 <script>
@@ -349,8 +383,8 @@ const VAPID_KEY = "BCw8eF8mrZ5SjUsD2OjEnE3hPTyDWhTr3io2Vv1e2ZuyjizrZKroAyPyuIi6A
 /* Yönetim şifresi (istediğinle değiştir) */
 const ADMIN_SIFRE = "gunkar";
 
-/* Ürünler — müşteri: ad + fiyat görür. olcu/kalite yalnız panelde (senin referansın).
-   Fiyatları Günkar Fiyat uygulamasında hesaplayıp buraya yaz. */
+/* Ürünler — VARSAYILAN adlar. Fiyat/ölçü/kalite Firestore'dan (panelden) gelir.
+   Panelde hiç kayıt yoksa bu liste kullanılır. */
 const PRODUCTS = [
   { ad:"10kg Halloumi Cheese", fiyat:0, olcu:"", kalite:"" },
   { ad:"5kg Halloumi Cheese",  fiyat:0, olcu:"", kalite:"" },
@@ -382,6 +416,25 @@ let messaging = null;
 try { messaging = firebase.messaging(); } catch(e){ /* desteklenmeyen tarayıcı */ }
 
 const qty = PRODUCTS.map(()=>0);
+
+/* ---------- Fiyat listesi (Firestore'dan, panelden yönetilir) ---------- */
+const FIYAT_DOC = db.collection('ayarlar').doc('urunler');
+function fiyatlariDinle(yenidenCiz){
+  FIYAT_DOC.onSnapshot(doc=>{
+    if(doc.exists && Array.isArray(doc.data().liste) && doc.data().liste.length){
+      const liste = doc.data().liste;
+      liste.forEach((p,i)=>{
+        if(PRODUCTS[i]){
+          PRODUCTS[i].ad     = p.ad     ?? PRODUCTS[i].ad;
+          PRODUCTS[i].fiyat  = (typeof p.fiyat === 'number') ? p.fiyat : (parseFloat(p.fiyat)||0);
+          PRODUCTS[i].olcu   = p.olcu   ?? "";
+          PRODUCTS[i].kalite = p.kalite ?? "";
+        }
+      });
+    }
+    if(yenidenCiz){ renderProducts(); updateTotals(); }
+  }, err=>{});
+}
 
 /* ---------- Sipariş ekranı ---------- */
 function renderProducts(){
@@ -760,6 +813,55 @@ function reddet(id){
   if(confirm("Bu sipariş reddedilsin mi? Müşteri bunu görecek.")) setStatus(id,'reddedildi');
 }
 
+/* ---------- Fiyat düzenleme (panel) ---------- */
+function fiyatEkraniAc(){
+  const el = document.getElementById('fiyatList');
+  el.innerHTML = PRODUCTS.map((p,i)=>`
+    <div class="fitem">
+      <div class="frow">
+        <div class="fad">
+          <label>Ürün adı</label>
+          <input id="f-ad-${i}" value="${escapeHtml(p.ad)}" />
+        </div>
+        <div class="ffiyat">
+          <label>Fiyat (₺)</label>
+          <input id="f-fiyat-${i}" type="number" inputmode="decimal" step="0.01" min="0" value="${p.fiyat||''}" placeholder="0" />
+        </div>
+      </div>
+      <div class="frow">
+        <div style="flex:1">
+          <label>Ölçü (opsiyonel, sadece siz görürsünüz)</label>
+          <input id="f-olcu-${i}" value="${escapeHtml(p.olcu||'')}" placeholder="ör. 800 × 1200 mm" />
+        </div>
+      </div>
+      <div class="frow">
+        <div style="flex:1">
+          <label>Kalite (opsiyonel, sadece siz görürsünüz)</label>
+          <input id="f-kalite-${i}" value="${escapeHtml(p.kalite||'')}" placeholder="ör. C · TL-HPFL-TL" />
+        </div>
+      </div>
+    </div>`).join('');
+  document.getElementById('fiyatModal').classList.remove('hide');
+}
+function fiyatEkraniKapat(){
+  document.getElementById('fiyatModal').classList.add('hide');
+}
+async function fiyatKaydet(){
+  const liste = PRODUCTS.map((p,i)=>({
+    ad:     (document.getElementById('f-ad-'+i).value || p.ad).trim(),
+    fiyat:  parseFloat(document.getElementById('f-fiyat-'+i).value) || 0,
+    olcu:   document.getElementById('f-olcu-'+i).value.trim(),
+    kalite: document.getElementById('f-kalite-'+i).value.trim()
+  }));
+  try{
+    await FIYAT_DOC.set({ liste, guncelleme: firebase.firestore.FieldValue.serverTimestamp() });
+    // yerel listeyi de güncelle
+    liste.forEach((p,i)=>{ if(PRODUCTS[i]) Object.assign(PRODUCTS[i], p); });
+    fiyatEkraniKapat();
+    toast("✓ Fiyatlar kaydedildi");
+  }catch(e){ toast("Kaydedilemedi — bağlantıyı kontrol et"); }
+}
+
 /* ---------- Push kaydı ---------- */
 async function bildirimAyarla(){
   if(!messaging){ toast("Bu tarayıcı bildirimi desteklemiyor"); return; }
@@ -797,7 +899,12 @@ function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
   const dt = document.getElementById('teslimTarihi');
   if(dt){ dt.min = isoTarih(enErkenTeslim()); }
   const isAdmin = new URLSearchParams(location.search).get('admin')==='1';
-  if(!isAdmin){ takipCiz(); }
+  if(!isAdmin){
+    fiyatlariDinle(true);   // müşteri: fiyatları canlı dinle, değişince ekranı güncelle
+    takipCiz();
+  } else {
+    fiyatlariDinle(false);  // admin: fiyat listesini arka planda yükle (düzenleme için hazır)
+  }
   if(isAdmin){
     document.getElementById('orderView').classList.add('hide');
     document.getElementById('orderBar').classList.add('hide');
