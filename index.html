@@ -485,11 +485,9 @@ function updateTotals(){
       box.classList.add('hide');
     }
   }
-  // Alt bardaki etiket — tüm içeriği tek seferde yaz (totQty'ye ayrıca dokunma)
+  // Alt bardaki etiket — fiyat üstteki özette zaten var, burada sadece adet
   const lbl = document.getElementById('totLabel');
-  if(lbl) lbl.innerHTML = h.genel>0
-    ? `<div class="n">${fmtTL(h.genel)}</div><div class="l">${h.koli} adet · KDV dahil</div>`
-    : `<div class="n">${h.koli} adet</div><div class="l">${h.lines} ürün seçildi</div>`;
+  if(lbl) lbl.innerHTML = `<div class="n">${h.koli} adet</div><div class="l">${h.lines} ürün seçildi</div>`;
 
   const sb = document.getElementById('sendBtn');
   if(sb) sb.disabled = (h.lines===0 || !tarih);
