@@ -13,7 +13,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
 <!-- Firebase (compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -32,7 +32,8 @@
   body{
     font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--paper);
     padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    -webkit-font-smoothing:antialiased;
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+    font-optical-sizing:auto;
     position:relative;
   }
   /* Oluklu mukavva dalga dokusu — çok soluk, sabit arka plan */
@@ -53,17 +54,17 @@
     display:grid;place-items:center;overflow:hidden;flex:0 0 auto;
   }
   .mark img{width:100%;height:100%;object-fit:contain;display:block}
-  .top h1{font-family:Archivo,sans-serif;font-weight:800;font-size:19px;letter-spacing:-.4px;margin:0;line-height:1.1}
-  .top .sub{font-size:12.5px;color:var(--muted);margin-top:2px;letter-spacing:.2px}
+  .top h1{font-family:'Bodoni Moda',Georgia,serif;font-weight:600;font-size:23px;letter-spacing:-.1px;margin:0;line-height:1.12}
+  .top .sub{font-size:11px;color:var(--muted);margin-top:5px;letter-spacing:.13em;text-transform:uppercase;font-weight:500}
 
   /* Cards */
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-  .sec-label{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:26px 4px 10px}
+  .sec-label{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:28px 4px 11px}
 
   /* Product rows */
   .prod{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
   .prod:last-child{border-bottom:0}
-  .prod .name{flex:1;font-weight:600;font-size:15.5px}
+  .prod .name{flex:1;font-weight:600;font-size:15.5px;letter-spacing:-.1px}
   .prod .unit{font-size:12px;color:var(--muted);margin-top:2px;font-weight:500}
   .stepper{display:flex;align-items:center;gap:2px;background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:3px}
   .stepper button{
@@ -136,7 +137,7 @@
   .total .n{font-family:Inter,sans-serif;font-variant-numeric:tabular-nums;font-weight:700;font-size:20px}
   .total .l{font-size:12px;color:var(--muted)}
   .btn{
-    border:0;border-radius:13px;font-family:Archivo,sans-serif;font-weight:700;font-size:15.5px;letter-spacing:.2px;
+    border:0;border-radius:12px;font-family:Inter,sans-serif;font-weight:600;font-size:15px;letter-spacing:.01em;
     padding:15px 22px;cursor:pointer;transition:transform .06s,opacity .15s;color:var(--brand-ink);background:var(--brand);
   }
   .btn:active{transform:translateY(1px)}
@@ -147,7 +148,7 @@
   /* Confirmation */
   .done{text-align:center;padding:54px 24px}
   .done .tick{width:64px;height:64px;border-radius:50%;background:var(--onay);color:#fff;display:grid;place-items:center;margin:0 auto 18px;font-size:30px}
-  .done h2{font-family:Archivo,sans-serif;font-weight:800;font-size:22px;margin:0 0 6px}
+  .done h2{font-family:'Bodoni Moda',Georgia,serif;font-weight:600;font-size:25px;margin:0 0 6px;letter-spacing:-.1px}
   .done p{color:var(--muted);margin:0 0 24px;font-size:14.5px}
   .receipt{text-align:left;margin:0 0 24px}
   .receipt .row{display:flex;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--line);font-size:14.5px}
@@ -165,8 +166,16 @@
   .myrow-id{font-family:Inter,sans-serif;font-variant-numeric:tabular-nums;font-weight:700;font-size:14px}
   .myrow-sub{font-size:12.5px;color:var(--muted);margin-top:2px}
 
+  /* ===== Sipariş takibi (sipariş ekranında) ===== */
+  .live{color:var(--onay);font-size:9.5px;letter-spacing:.12em;margin-left:6px}
+  .tcard{margin-bottom:10px;overflow:hidden}
+  .thead2{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer}
+  .thead2-l{flex:1;min-width:0}
+  .tsub{font-size:14.5px;font-weight:600;color:var(--ink);letter-spacing:-.1px}
+  .chev{color:var(--muted);font-size:12px;flex:0 0 auto}
+  .tbody{padding:4px 16px 16px}
+
   /* ===== Takip zaman çizelgesi ===== */
-  #trackCard{padding:20px 18px 6px}
   .tl{display:flex;gap:14px;position:relative;padding-bottom:22px}
   .tl:last-child{padding-bottom:6px}
   .tl::before{
@@ -192,12 +201,12 @@
   /* ===== Admin ===== */
   .gate{max-width:360px;margin:12vh auto 0;padding:0 20px;text-align:center}
   .gate .mark{margin:0 auto 18px;width:52px;height:52px;font-size:22px;border-radius:13px}
-  .gate h2{font-family:Archivo,sans-serif;font-weight:800;margin:0 0 22px}
+  .gate h2{font-family:'Bodoni Moda',Georgia,serif;font-weight:600;font-size:24px;margin:0 0 22px;letter-spacing:-.1px}
   .gate input{width:100%;border:1px solid var(--line);border-radius:13px;padding:15px 16px;font-size:16px;font-family:Inter;text-align:center;margin-bottom:12px}
   .gate input:focus{outline:none;border-color:var(--brand)}
 
   .adminhead{display:flex;align-items:center;justify-content:space-between;padding:18px 4px 14px;gap:10px}
-  .adminhead h1{font-family:Archivo,sans-serif;font-weight:800;font-size:18px;margin:0}
+  .adminhead h1{font-family:'Bodoni Moda',Georgia,serif;font-weight:600;font-size:21px;margin:0;letter-spacing:-.1px;line-height:1.15}
   .adminhead .cnt{font-family:Inter,sans-serif;font-variant-numeric:tabular-nums;font-size:12px;color:var(--muted)}
   .pushnote{display:flex;gap:10px;align-items:center;background:#FFF7E9;border:1px solid #F3DBA6;color:#8a5a00;border-radius:12px;padding:12px 14px;font-size:13px;margin:0 4px 16px;line-height:1.3}
   .pushnote button{margin-left:auto;flex:0 0 auto}
@@ -249,7 +258,7 @@
   .btn.onay{background:var(--onay)} .btn.beklet{background:var(--beklet)} .btn.ret{background:var(--surface);color:var(--ret);border:1px solid #f0cccc}
 
   .empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:14.5px}
-  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:11px;font-size:14px;box-shadow:var(--shadow);z-index:50;max-width:88vw;text-align:center}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:11px;font-size:14px;box-shadow:var(--shadow);z-index:999;max-width:88vw;text-align:center}
 
   .footlink{text-align:center;margin:34px 0 0}
   .footlink a{color:#9aa4b1;font-size:12px;text-decoration:none;letter-spacing:.03em}
@@ -258,7 +267,7 @@
   .fmodal{position:fixed;inset:0;background:rgba(16,21,28,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center}
   .fsheet{background:var(--paper);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:20px 16px calc(24px + env(safe-area-inset-bottom))}
   .fsheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-  .fsheet-head h2{font-family:Archivo,sans-serif;font-weight:800;font-size:19px;margin:0}
+  .fsheet-head h2{font-family:'Bodoni Moda',Georgia,serif;font-weight:600;font-size:22px;margin:0;letter-spacing:-.1px}
   .fclose{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:15px;cursor:pointer;color:var(--muted)}
   .fhint{font-size:12.5px;color:var(--muted);margin:0 0 16px;line-height:1.4}
   .fitem{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
@@ -328,7 +337,7 @@
     <div style="display:flex;align-items:center;gap:11px">
       <div class="mark"><img src="logo.png" alt="Gülgün" /></div>
       <div>
-        <h1>Gülgün siparişleri</h1>
+        <h1>Gülgün Sipariş Listesi</h1>
         <div class="cnt"><span id="newCount">0</span> yeni · canlı</div>
       </div>
     </div>
@@ -424,7 +433,7 @@ try { messaging = firebase.messaging(); } catch(e){ /* desteklenmeyen tarayıcı
 const qty = PRODUCTS.map(()=>0);
 
 /* ---------- Fiyat listesi (Firestore'dan, panelden yönetilir) ---------- */
-const FIYAT_DOC = db.collection('ayarlar').doc('urunler');
+const FIYAT_DOC = db.collection('gulgun_ayarlar').doc('urunler');
 function fiyatlariDinle(yenidenCiz){
   FIYAT_DOC.onSnapshot(doc=>{
     if(doc.exists && Array.isArray(doc.data().liste) && doc.data().liste.length){
@@ -614,7 +623,6 @@ function takipCiz(){
     <div class="tcard card" id="t-${id}">
       <div class="thead2" onclick="takipAc('${id}')">
         <div class="thead2-l">
-          <div class="oid">#${id.slice(-5).toUpperCase()}</div>
           <div class="tsub" id="tsub-${id}">yükleniyor…</div>
         </div>
         <span class="badge alindi" id="tbadge-${id}">—</span>
@@ -830,18 +838,27 @@ function fiyatEkraniKapat(){
 }
 async function fiyatKaydet(){
   const liste = PRODUCTS.map((p,i)=>({
-    ad:     (document.getElementById('f-ad-'+i).value || p.ad).trim(),
-    fiyat:  parseFloat(document.getElementById('f-fiyat-'+i).value) || 0,
-    olcu:   document.getElementById('f-olcu-'+i).value.trim(),
+    ad:     ((document.getElementById('f-ad-'+i)||{}).value || p.ad).trim(),
+    fiyat:  parseFloat((document.getElementById('f-fiyat-'+i)||{}).value) || 0,
+    olcu:   (((document.getElementById('f-olcu-'+i)||{}).value)||'').trim(),
     kalite: ""
   }));
+
+  // 1) Yereli hemen güncelle + ekranı kapat (anında tepki)
+  liste.forEach((p,i)=>{ if(PRODUCTS[i]) Object.assign(PRODUCTS[i], p); });
+  fiyatEkraniKapat();
+  toast("Kaydediliyor…");
+
+  // 2) Sunucuya yaz — sonucu arkada bildir, takılıp kalma
   try{
-    await FIYAT_DOC.set({ liste, guncelleme: firebase.firestore.FieldValue.serverTimestamp() });
-    // yerel listeyi de güncelle
-    liste.forEach((p,i)=>{ if(PRODUCTS[i]) Object.assign(PRODUCTS[i], p); });
-    fiyatEkraniKapat();
+    await Promise.race([
+      FIYAT_DOC.set({ liste, guncelleme: firebase.firestore.FieldValue.serverTimestamp() }),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('zaman aşımı')), 8000))
+    ]);
     toast("✓ Fiyatlar kaydedildi");
-  }catch(e){ toast("Kaydedilemedi — bağlantıyı kontrol et"); }
+  }catch(e){
+    toast("Kaydedilemedi: " + (e && e.message ? e.message : "bağlantı hatası"));
+  }
 }
 
 /* ---------- Push kaydı ---------- */
