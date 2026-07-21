@@ -20,6 +20,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 
 <style>
   :root{
@@ -312,6 +313,16 @@
   .anktoplam b{font-weight:700}
   #ankTeslim{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px 12px;font-family:Inter,sans-serif;font-size:15px;color:var(--ink);outline:none;background:var(--surface)}
   #ankTeslim:focus{border-color:var(--brand)}
+  .aguyari{background:#FAF0D8;border:1px solid #E8D3A0;color:#8A6410;border-radius:12px;padding:11px 14px;font-size:13px;margin:0 4px 12px;line-height:1.4}
+  .siklik{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin:0 4px 14px}
+  .siklik .sk-ana{font-size:15px;color:var(--ink)}
+  .siklik .sk-ana b{font-weight:700}
+  .siklik .sk-alt{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.45}
+  .siklik .sk-not{font-size:13px;font-weight:600;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);color:var(--brand-koyu)}
+  .siklik.yakin{border-color:#E8D3A0;background:#FDFAF2}
+  .siklik.yakin .sk-not{color:#8A6410}
+  .siklik.gec{border-color:#E3C4BE;background:#FDF6F5}
+  .siklik.gec .sk-not{color:#8E322A}
   .hide{display:none!important}
 </style>
 </head>
@@ -326,6 +337,8 @@
       <div class="sub">Günkar Ambalaj — karton koli</div>
     </div>
   </div>
+
+  <div id="agUyariM" class="aguyari hide">Çevrimdışısınız — sipariş bağlantı gelince gönderilecek.</div>
 
   <div class="sec-label">Ürünler</div>
   <div class="card" id="prodList"><!-- js --></div>
@@ -381,6 +394,9 @@
       <button class="btn ghost sm" onclick="cikisYap()">Çıkış</button>
     </div>
   </div>
+
+  <div id="agUyari" class="aguyari hide">Çevrimdışısınız — değişiklikler bağlantı gelince gönderilecek.</div>
+  <div id="siklik" class="siklik hide"></div>
 
   <div id="pushNote" class="pushnote hide">
     <span>Kapalıyken bildirim için izin gerekli.</span>
@@ -469,7 +485,7 @@ const PRODUCTS = [
 const BIRIM = "adet";
 const KDV_ORANI = 20;   // % — gerekirse değiştir
 
-/* Ankutsan sipariş formundaki resmî kalite listesi (dalga + kalite ayrı) */
+/* Ankutsan şablonundaki resmî kalite listesi (ANA VERİLER C17:D52) */
 const KALITELER = [
   {d:"E", k:"TL80 HPFL80 TL80"},
   {d:"E", k:"BTL110 HPFL80 TL80"},
@@ -478,13 +494,11 @@ const KALITELER = [
   {d:"B", k:"TL80 HPFL80 TL80"},
   {d:"B", k:"BTL110 HPFL80 TL80"},
   {d:"B", k:"KM100 HPFL100 KM100"},
-  {d:"B", k:"KM100 HPFL115 KM100"},
   {d:"B", k:"KM100 HPFL135 KM100"},
   {d:"B", k:"BTL110 HPFL115 KM100"},
   {d:"C", k:"TL80 HPFL80 TL80"},
   {d:"C", k:"BTL110 HPFL80 TL80"},
   {d:"C", k:"KM100 HPFL100 KM100"},
-  {d:"C", k:"KM100 HPFL115 KM100"},
   {d:"C", k:"KM100 HPFL135 KM100"},
   {d:"C", k:"BTL110 HPFL135 KM100"},
   {d:"C", k:"KM135 HPFL135 KM135"},
@@ -495,6 +509,7 @@ const KALITELER = [
   {d:"EB", k:"BTL110 HPFL115 HPFL80 HPFL115 KM100"},
   {d:"EB", k:"KM100 HPFL100 HPFL80 HPFL100 KM100"},
   {d:"EB", k:"KM135 HPFL115 HPFL80 HPFL115 KM135"},
+  {d:"EB", k:"KM135 HPFL100 HPFL80 HPFL115 KM100"},
   {d:"BC", k:"TL80 HPFL80 HPFL80 HPFL80 TL80"},
   {d:"BC", k:"KM100 HPFL80 HPFL80 HPFL80 KM100"},
   {d:"BC", k:"BTL110 HPFL80 HPFL80 HPFL80 TL80"},
@@ -509,12 +524,13 @@ const KALITELER = [
   {d:"BC", k:"BTL110 HPFL115 HPFL80 HPFL115 KM100"},
   {d:"BC", k:"BTL110 HPFL135 HPFL80 HPFL135 KM135"}
 ];
+const SABLON_URL = "ankutsan-sablon.xlsx";
 const RIL_TIPLERI = ["NORMAL OFFSET","RİLSİZ"];
 const MIN_M2 = 500;   // Ankutsan formu kuralı: (En × Boy ÷ 1.000.000) × Adet ≥ 500 m²
 const SEVK_YERI = "ADANA";
 
 /* Bildirim fonksiyonu (Cloud Run / Cloud Functions gen2) */
-const BILDIRIM_URL = "https://europe-west1-gulgun-siparis.cloudfunctions.net/bildirimGonder";
+const BILDIRIM_URL = "https://bildirimgonder-q34ejw2fda-ew.a.run.app";
 const BILDIRIM_ANAHTAR = "gunkar-gulgun-2026";
 
 async function bildirimTetikle(baslik, metin){
@@ -557,6 +573,21 @@ const asamaIndex = id => ASAMALAR.findIndex(a=>a.id===id);
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
+/* Çevrimdışı çalışma: kapsama zayıfken de çalışır, ağ gelince kuyruk boşalır */
+db.enablePersistence({ synchronizeTabs: true }).catch(()=>{ /* birden çok sekme veya desteklenmiyor */ });
+
+/* Bağlantı durumu göstergesi */
+let cevrimdisi = !navigator.onLine;
+function agDurumu(){
+  cevrimdisi = !navigator.onLine;
+  ['agUyari','agUyariM'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.classList.toggle('hide', !cevrimdisi);
+  });
+}
+window.addEventListener('online',  ()=>{ agDurumu(); toast("Bağlantı geri geldi"); });
+window.addEventListener('offline', ()=>{ agDurumu(); toast("Çevrimdışı — kayıtlar kuyruğa alınıyor"); });
 let messaging = null;
 try { messaging = firebase.messaging(); } catch(e){ /* desteklenmeyen tarayıcı */ }
 
@@ -896,6 +927,7 @@ function renderOrders(){
 
   const newN = allOrders.filter(o=>(o.status||'alindi')==='alindi' && o.status!=='reddedildi').length;
   document.getElementById('newCount').textContent = newN;
+  sikligiCiz();
 
   const wrap = document.getElementById('orders');
   if(!list.length){ wrap.innerHTML = `<div class="empty">Bu filtrede sipariş yok.</div>`; return; }
@@ -951,6 +983,48 @@ async function setStatus(id,status){
 }
 function reddet(id){
   if(confirm("Bu sipariş reddedilsin mi? Müşteri bunu görecek.")) setStatus(id,'reddedildi');
+}
+
+/* ---------- Sipariş sıklığı ---------- */
+function siparisSikligi(){
+  const gunler = allOrders
+    .filter(o=>o.status!=='reddedildi' && o.createdAt && o.createdAt.toDate)
+    .map(o=>o.createdAt.toDate().getTime())
+    .sort((a,b)=>b-a);           // yeniden eskiye
+  if(gunler.length < 1) return null;
+
+  const GUN = 86400000;
+  const sonGecen = Math.floor((Date.now() - gunler[0]) / GUN);
+
+  let ortalama = null;
+  if(gunler.length >= 2){
+    let toplam = 0;
+    for(let i=0;i<gunler.length-1;i++) toplam += (gunler[i] - gunler[i+1]);
+    ortalama = Math.round(toplam / (gunler.length-1) / GUN);
+  }
+  return { adet: gunler.length, sonGecen, ortalama };
+}
+function sikligiCiz(){
+  const el = document.getElementById('siklik');
+  if(!el) return;
+  const v = siparisSikligi();
+  if(!v){ el.classList.add('hide'); return; }
+  el.classList.remove('hide');
+
+  const sonMetin = v.sonGecen === 0 ? 'bugün' : `${v.sonGecen} gün önce`;
+  let durum = '', sinif = '';
+  if(v.ortalama){
+    if(v.sonGecen > v.ortalama * 1.3){ durum = 'Sipariş zamanı gelmiş olabilir.'; sinif = 'gec'; }
+    else if(v.sonGecen >= v.ortalama){ durum = 'Sipariş zamanı yaklaşıyor.'; sinif = 'yakin'; }
+  }
+
+  el.className = 'siklik ' + sinif;
+  el.innerHTML =
+    `<div class="sk-ana">Son sipariş <b>${sonMetin}</b></div>` +
+    (v.ortalama
+      ? `<div class="sk-alt">Ortalama <b>${v.ortalama} günde bir</b> sipariş veriyor · toplam ${v.adet} sipariş</div>`
+      : `<div class="sk-alt">Toplam ${v.adet} sipariş · ortalama için en az 2 sipariş gerekir</div>`) +
+    (durum ? `<div class="sk-not">${durum}</div>` : '');
 }
 
 /* ---------- Excel dışa aktarma ---------- */
@@ -1137,46 +1211,77 @@ function ankHesapla(){
   if(btn) btn.disabled = (satir===0);
 }
 
-function ankExcel(){
-  if(!xlsxHazirMi()) return;
-  const secili = PRODUCTS.map((p,i)=>({p, adet:Number((document.getElementById('ank-adet-'+i)||{}).value)||0}))
-                         .filter(x=>x.adet>0);
+async function ankExcel(){
+  const secili = PRODUCTS
+    .map((p,i)=>({ p, adet: Number((document.getElementById('ank-adet-'+i)||{}).value)||0 }))
+    .filter(x=>x.adet>0);
   if(!secili.length){ toast("Adet girin"); return; }
+  if(typeof ExcelJS === 'undefined'){ toast("Excel kütüphanesi yüklenemedi"); return; }
 
-  const basliklar = ['SIRA NO','MÜŞTERİ KODU','MÜŞTERİ ADI','KALİTE GRUP','DALGA','KALİTE','RİL TİPİ',
-    'RİL 1','RİL 2','RİL 3','RİL 4','RİL 5','RİL 6','RİL 7','RİL 8',
-    'LEVHA EN RİLSİZ (mm)','LEVHA EN (mm)','LEVHA BOY (mm)','SİPARİŞ TÜRÜ','SEVK YERİ','VADE',
-    'TALEP EDİLEN TESLİM TARİHİ','SİPARİŞ ADET','FİYAT','BİRİM','FSC','REFERANS SİPARİŞ NO','MÜŞTERİ MALZEME NO'];
+  const btn = document.getElementById('ankBtn');
+  const eskiYazi = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = "Hazırlanıyor…"; }
 
-  const teslim = (document.getElementById('ankTeslim')||{}).value || '';
-  const satirlar = [['SİPARİŞ BİLGİLERİ'], basliklar];
+  try{
+    const yanit = await fetch(SABLON_URL, { cache: 'no-store' });
+    if(!yanit.ok) throw new Error('şablon bulunamadı');
+    const veri = await yanit.arrayBuffer();
 
-  secili.forEach((x,n)=>{
-    const p = x.p, rilsiz = (p.rilTipi||'')==='RİLSİZ', ril = p.ril||[];
-    const en = levhaEn(p);
-    satirlar.push([
-      (n+1)+'.', '', 'GÜNKAR AMBALAJ', 'LİSTE',
-      p.dalga||'', p.kalite||'', p.rilTipi||'',
-      rilsiz?'':(Number(ril[0])||''), rilsiz?'':(Number(ril[1])||''), rilsiz?'':(Number(ril[2])||''), rilsiz?'':(Number(ril[3])||''),
-      rilsiz?'':(Number(ril[4])||''), rilsiz?'':(Number(ril[5])||''), rilsiz?'':(Number(ril[6])||''), rilsiz?'':(Number(ril[7])||''),
-      rilsiz?en:'',
-      en, Number(p.boy)||0,
-      'STANDART SİPARİŞ', SEVK_YERI, '',
-      teslim ? tarihYaz(teslim) : '',
-      x.adet, '', '', '', '', ''
-    ]);
-  });
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(veri);
+    const ws = wb.getWorksheet('SİPARİŞ FORMU') || wb.worksheets[0];
 
-  const ws = XLSX.utils.aoa_to_sheet(satirlar);
-  ws['!cols'] = [{wch:8},{wch:13},{wch:18},{wch:12},{wch:7},{wch:34},{wch:15},
-    ...Array(8).fill({wch:7}), {wch:19},{wch:14},{wch:15},{wch:17},{wch:11},{wch:8},
-    {wch:24},{wch:13},{wch:9},{wch:8},{wch:7},{wch:19},{wch:20}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'SİPARİŞ FORMU');
-  const bugun = new Date().toLocaleDateString('tr-TR').replace(/\./g,'-');
-  indir(wb, `Ankutsan-Levha-Siparisi-${bugun}.xlsx`);
-  ankEkraniKapat();
-  toast("✓ Ankutsan formu indirildi");
+    const teslimDeger = (document.getElementById('ankTeslim')||{}).value || '';
+    let teslimMetin = '';
+    if(teslimDeger){
+      const [y,m,g] = teslimDeger.split('-');
+      teslimMetin = `${g}.${m}.${y}`;
+    }
+
+    secili.forEach((x, n)=>{
+      const p = x.p;
+      const r = ws.getRow(3 + n);
+      const rilsiz = (p.rilTipi||'') === 'RİLSİZ';
+      const en = levhaEn(p);
+
+      r.getCell('D').value = 'GÜNKAR AMBALAJ';
+      r.getCell('E').value = 'LİSTE';
+      r.getCell('F').value = p.dalga || '';
+      r.getCell('G').value = p.kalite || '';
+      r.getCell('H').value = p.rilTipi || '';
+
+      const ril = p.ril || [];
+      ['I','J','K','L','M','N','O','P'].forEach((sut, k)=>{
+        const deger = rilsiz ? null : (Number(ril[k]) || null);
+        r.getCell(sut).value = deger;
+      });
+
+      r.getCell('Q').value = rilsiz ? (en || null) : null;
+      r.getCell('S').value = Number(p.boy) || null;
+      r.getCell('U').value = 'ADANA';
+      if(teslimMetin) r.getCell('W').value = teslimMetin;
+      r.getCell('X').value = x.adet;
+    });
+
+    const cikti = await wb.xlsx.writeBuffer();
+    const blob = new Blob([cikti], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const bugun = new Date().toLocaleDateString('tr-TR').replace(/\./g,'-');
+    a.href = url;
+    a.download = `Gunkar-Ambalaj-Siparis-${bugun}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+
+    ankEkraniKapat();
+    toast("✓ Ankutsan formu indirildi");
+  }catch(e){
+    toast("Form oluşturulamadı: " + ((e && e.message) || 'hata'));
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = eskiYazi || "Excel formunu indir"; }
+  }
 }
 
 /* ---------- Fiyat düzenleme (panel) ---------- */
@@ -1270,7 +1375,7 @@ function m2Guncelle(i){
   const birim = en*boy/1000000;                 // 1 levhanın m²'si
   const minAdet = Math.ceil(MIN_M2 / birim);    // 500 m² için gereken adet
   let uyari = '';
-  if(en < 300 || en > 2800) uyari = `<span class="fuyari">Levha eni 300–2.800 mm arasında olmalı (şu an ${en} mm).</span>`;
+  if(en < 300 || en > 2500) uyari = `<span class="fuyari">Levha eni 300–2.500 mm arasında olmalı (şu an ${en} mm).</span>`;
   el.innerHTML =
     `<div>Levha eni <b>${en} mm</b> · 1 levha <b>${birim.toFixed(4)} m²</b></div>`+
     `<div>Minimum 500 m² için en az <b>${minAdet.toLocaleString('tr-TR')} adet</b> sipariş gerekir.</div>` + uyari;
@@ -1349,6 +1454,7 @@ function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 /* ---------- yönlendirme ---------- */
 (function init(){
   renderProducts();
+  agDurumu();
   // Teslim tarihi: en erken 1 hafta (7 gün) sonrası seçilebilir
   const dt = document.getElementById('teslimTarihi');
   if(dt){ dt.min = isoTarih(enErkenTeslim()); }
